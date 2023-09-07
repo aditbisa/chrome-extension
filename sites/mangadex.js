@@ -54,8 +54,8 @@ async function mdScript(continues) {
     window.waitForSeconds = async (s) => new Promise((r) => setTimeout(r, s * 1000));
     
     window.downloadChapter = async () => {
-        const menus = $q('.menu')?.children;
-        if (!menus) {
+        const sideMenu = $q('.reader--menu.open');
+        if (!sideMenu) {
             message = 'Side menu not found. Goto reading chapter page to download.';
             console.log(message);
             alert(message);
@@ -68,7 +68,7 @@ async function mdScript(continues) {
         infoElm.style.color = 'white';
         infoElm.style.textAlign = 'center';
         infoElm.style.padding = '8px';
-        menus[6].after(infoElm); // After first HR
+        $q('hr', sideMenu).after(infoElm); // After first HR
         
         infoElm.textContent = `Waiting for images..`;
         while (true) {
@@ -88,9 +88,12 @@ async function mdScript(continues) {
         infoElm.textContent = `Collecting..`;
         console.log('Collecting..');
         
-        let   manga = menus[1].textContent.trim()
+        const mangaNameElm = $q('a[title]', sideMenu)
+            , chapterElm = $q('#chapter-selector > div span', sideMenu[3]);
+
+        let   manga = mangaNameElm.textContent.trim()
             , mangaFolder = safeFilename(manga)
-            , chapter = $q('.placeholder-text', menus[4]).textContent.trim();
+            , chapter = chapterElm.textContent.trim();
         console.log(manga);
         console.log(chapter);
         
@@ -121,9 +124,7 @@ async function mdScript(continues) {
         console.log(images);
         
         const image_count = images.length
-            , expected_count = $q('img[src^="blob:"]')
-                .closest('div[class=""]')
-                .children.length;
+            , expected_count = $q('.reader--meta.page').textContent.split('/')[1] * 1;
         if (image_count != expected_count) {
             message = `Images still loading. Expect ${expected_count} but found ${image_count}`;
             console.log(message);
@@ -147,7 +148,7 @@ async function mdScript(continues) {
             
             if (downloadContinues > 0) {
                 downloadContinues--;
-                $q('.menu a[href^="/chapter"]:last-child').click();
+                $q('#chapter-selector > a[href^="/chapter"]:last-child').click();
                 setTimeout(downloadChapter, 2000);
             }
         }
